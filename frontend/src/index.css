@@ -1,0 +1,125 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  /* 🎨 Football Theme Color Palette */
+  --primary-green: #1B5E20;      /* Màu xanh đậm sân bóng */
+  --secondary-green: #2E7D32;    /* Xanh lá trung */
+  --light-green: #4CAF50;        /* Xanh lá sáng */
+  --accent-green: #81C784;       /* Xanh nhạt */
+  --grass-green: #43A047;        /* Màu cỏ */
+  
+  --field-pattern: #388E3C;      /* Pattern sân */
+  --white-line: #FFFFFF;         /* Vạch kẻ sân */
+  
+  --gold: #FFD700;               /* Vàng cúp */
+  --orange: #FF9800;             /* Cam highlight */
+  
+  --dark-bg: #0D1B0F;            /* Nền tối */
+  --card-bg: #FFFFFF;            /* Nền card */
+  --text-primary: #1A1A1A;       /* Text chính */
+  --text-secondary: #666666;     /* Text phụ */
+  --text-light: #FFFFFF;         /* Text trắng */
+  
+  --success: #4CAF50;
+  --warning: #FF9800;
+  --error: #F44336;
+  --info: #2196F3;
+  
+  --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.15);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.2);
+  
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  
+  font-family: 'Segoe UI', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+  line-height: 1.6;
+  font-weight: 400;
+  
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 50%, #A5D6A7 100%);
+  color: var(--text-primary);
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+a {
+  color: var(--primary-green);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+a:hover {
+  color: var(--light-green);
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  transform: translateY(-2px);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+input,
+textarea,
+select {
+  font-family: inherit;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--light-green) !important;
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #E8F5E9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--light-green);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--secondary-green);
+}
+
+/* Selection */
+::selection {
+  background: var(--accent-green);
+  color: white;
+}
+
