@@ -44,6 +44,11 @@ public class BookingService {
     public List<TimeSlotResponse> getAvailableTimeSlots(Long pitchId, LocalDate date) {
         Pitch pitch = pitchRepository.findById(pitchId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sân"));
+
+        // Không cho xem slot với sân không public
+        if (!pitch.getIsApproved() || !pitch.getIsActive() || !pitch.getOwner().getIsActive()) {
+            throw new RuntimeException("Sân hiện không khả dụng");
+        }
         
         // Lấy danh sách booking đã đặt trong ngày
         List<Booking> bookedSlots = bookingRepository.findBookedSlots(pitchId, date);
@@ -103,6 +108,11 @@ public class BookingService {
         // Kiểm tra sân đã được duyệt chưa
         if (!pitch.getIsApproved()) {
             throw new RuntimeException("Sân chưa được duyệt, không thể đặt");
+        }
+
+        // Chủ sân bị khóa hoặc sân bị tắt thì không cho đặt
+        if (!pitch.getIsActive() || !pitch.getOwner().getIsActive()) {
+            throw new RuntimeException("Sân hiện không khả dụng để đặt");
         }
         
         // Kiểm tra ngày đặt không được trong quá khứ
@@ -244,7 +254,7 @@ public class BookingService {
     
     /**
      * Hủy đơn đặt sân (USER)
-     * Chỉ cho phép hủy đơn ở trạng thái PENDING
+        * Cho phép hủy đơn ở trạng thái PENDING hoặc CONFIRMED
      */
     @Transactional
     public BookingResponse cancelBooking(Long bookingId) {
@@ -258,9 +268,9 @@ public class BookingService {
             throw new RuntimeException("Bạn không có quyền hủy đơn này");
         }
         
-        // Chỉ cho phép hủy khi đơn đang PENDING (chưa được xác nhận)
-        if (booking.getStatus() != BookingStatus.PENDING) {
-            throw new RuntimeException("Không thể hủy đơn đã được xác nhận hoặc đã hoàn thành");
+        // Cho phép hủy khi đơn đang PENDING hoặc CONFIRMED
+        if (booking.getStatus() != BookingStatus.PENDING && booking.getStatus() != BookingStatus.CONFIRMED) {
+            throw new RuntimeException("Chỉ có thể hủy đơn đang chờ xác nhận hoặc đã xác nhận");
         }
         
         // Kiểm tra không được hủy nếu ngày đặt đã qua

@@ -47,6 +47,9 @@ public class DataInitializer implements CommandLineRunner {
             owner.setPassword(passwordEncoder.encode("123456"));
             owner.setFullName("Nguyễn Văn A");
             owner.setPhoneNumber("0123456789");
+            owner.setBankBin("970422");
+            owner.setBankAccountNo("0123456789");
+            owner.setBankAccountName("NGUYEN VAN A");
             owner.setRole(User.Role.OWNER);
             owner.setIsActive(true);
             User savedOwner = userRepository.save(owner);

@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { bookingAPI } from '../services/api';
+import { bookingAPI, paymentAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
 const OwnerBookings = () => {
   const [bookings, setBookings] = useState([]);
+  const [paymentByBookingId, setPaymentByBookingId] = useState({});
+  const [confirmingPaymentId, setConfirmingPaymentId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [filter, setFilter] = useState('PENDING');
@@ -25,12 +27,35 @@ const OwnerBookings = () => {
   const fetchBookings = async () => {
     try {
       const response = await bookingAPI.getOwnerBookings();
-      setBookings(response.data);
+      const bookingList = response.data || [];
+      setBookings(bookingList);
+      await fetchPaymentStatuses(bookingList);
     } catch {
       setError('Không thể tải danh sách đặt sân');
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchPaymentStatuses = async (bookingList) => {
+    if (!bookingList.length) {
+      setPaymentByBookingId({});
+      return;
+    }
+
+    const statusMap = {};
+    await Promise.all(
+      bookingList.map(async (booking) => {
+        try {
+          const response = await paymentAPI.getByBookingId(booking.id);
+          statusMap[booking.id] = response.data;
+        } catch {
+          statusMap[booking.id] = { paymentStatus: 'UNPAID', provider: 'VIETQR' };
+        }
+      })
+    );
+
+    setPaymentByBookingId(statusMap);
   };
 
   const handleConfirm = async (id) => {
@@ -52,6 +77,20 @@ const OwnerBookings = () => {
       fetchBookings();
     } catch (err) {
       setError(err.response?.data?.message || 'Không thể từ chối đơn');
+    }
+  };
+
+  const handleConfirmPayment = async (bookingId) => {
+    if (!window.confirm('Xác nhận đã nhận tiền cho đơn này?')) return;
+
+    try {
+      setConfirmingPaymentId(bookingId);
+      await paymentAPI.confirmPayment(bookingId);
+      await fetchBookings();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Không thể xác nhận thanh toán');
+    } finally {
+      setConfirmingPaymentId(null);
     }
   };
 
@@ -85,6 +124,19 @@ const OwnerBookings = () => {
         return { label: 'Hoàn thành', color: '#3498db', icon: '★' };
       default:
         return { label: status, color: '#7f8c8d', icon: '?' };
+    }
+  };
+
+  const getPaymentStatusInfo = (paymentStatus) => {
+    switch (paymentStatus) {
+      case 'PAID':
+        return { label: 'Đã thanh toán', color: '#166534', backgroundColor: '#dcfce7' };
+      case 'PENDING':
+        return { label: 'Chờ chủ sân xác nhận', color: '#9a3412', backgroundColor: '#ffedd5' };
+      case 'FAILED':
+        return { label: 'Thanh toán lỗi', color: '#991b1b', backgroundColor: '#fee2e2' };
+      default:
+        return { label: 'Chưa thanh toán', color: '#475569', backgroundColor: '#e2e8f0' };
     }
   };
 
@@ -166,19 +218,22 @@ const OwnerBookings = () => {
               <th style={styles.th}>Giờ</th>
               <th style={styles.th}>Tổng tiền</th>
               <th style={styles.th}>Trạng thái</th>
+              <th style={styles.th}>Thanh toán</th>
               <th style={styles.th}>Hành động</th>
             </tr>
           </thead>
           <tbody>
             {filteredBookings.length === 0 ? (
               <tr>
-                <td colSpan="8" style={styles.noData}>
+                <td colSpan="9" style={styles.noData}>
                   Không có đơn đặt sân nào
                 </td>
               </tr>
             ) : (
               filteredBookings.map((booking) => {
                 const statusInfo = getStatusInfo(booking.status);
+                const paymentStatus = paymentByBookingId[booking.id]?.paymentStatus || 'UNPAID';
+                const paymentInfo = getPaymentStatusInfo(paymentStatus);
                 return (
                   <tr key={booking.id} style={styles.tableRow}>
                     <td style={styles.td}>#{booking.id}</td>
@@ -208,24 +263,63 @@ const OwnerBookings = () => {
                       </span>
                     </td>
                     <td style={styles.td}>
-                      {booking.status === 'PENDING' && (
+                      <span
+                        style={{
+                          ...styles.paymentBadge,
+                          color: paymentInfo.color,
+                          backgroundColor: paymentInfo.backgroundColor,
+                        }}
+                      >
+                        {paymentInfo.label}
+                      </span>
+                    </td>
+                    <td style={styles.td}>
+                      {(booking.status === 'PENDING' || booking.status === 'CONFIRMED') && (
                         <div style={styles.actions}>
+                          {booking.status === 'PENDING' && (
+                            <>
+                              <button
+                                onClick={() => handleConfirm(booking.id)}
+                                style={styles.confirmBtn}
+                              >
+                                ✓ Xác nhận đơn
+                              </button>
+                              <button
+                                onClick={() => setRejectModal({ show: true, bookingId: booking.id })}
+                                style={styles.rejectBtn}
+                              >
+                                ✕ Từ chối
+                              </button>
+                            </>
+                          )}
+
+                          {paymentStatus !== 'PAID' && (
+                            <button
+                              onClick={() => handleConfirmPayment(booking.id)}
+                              style={styles.confirmPaymentBtn}
+                              disabled={confirmingPaymentId === booking.id}
+                            >
+                              {confirmingPaymentId === booking.id ? 'Đang xác nhận...' : '💰 Xác nhận đã nhận tiền'}
+                            </button>
+                          )}
+
                           <button
-                            onClick={() => handleConfirm(booking.id)}
-                            style={styles.confirmBtn}
+                            onClick={() => navigate(`/chat?bookingId=${booking.id}`)}
+                            style={styles.chatBtn}
                           >
-                            ✓ Xác nhận
-                          </button>
-                          <button
-                            onClick={() => setRejectModal({ show: true, bookingId: booking.id })}
-                            style={styles.rejectBtn}
-                          >
-                            ✕ Từ chối
+                            💬 Chat
                           </button>
                         </div>
                       )}
-                      {booking.status !== 'PENDING' && (
-                        <span style={styles.noAction}>—</span>
+                      {booking.status !== 'PENDING' && booking.status !== 'CONFIRMED' && (
+                        <div style={styles.actions}>
+                          <button
+                            onClick={() => navigate(`/chat?bookingId=${booking.id}`)}
+                            style={styles.chatBtn}
+                          >
+                            💬 Chat
+                          </button>
+                        </div>
                       )}
                     </td>
                   </tr>
@@ -402,6 +496,15 @@ const styles = {
     fontWeight: '600',
     whiteSpace: 'nowrap',
   },
+  paymentBadge: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    padding: '0.4rem 0.75rem',
+    borderRadius: '999px',
+    fontSize: '0.8rem',
+    fontWeight: '700',
+    whiteSpace: 'nowrap',
+  },
   actions: {
     display: 'flex',
     gap: '0.5rem',
@@ -421,6 +524,26 @@ const styles = {
     backgroundColor: '#e74c3c',
     color: 'white',
     border: 'none',
+    padding: '0.5rem 0.75rem',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '0.85rem',
+    fontWeight: '600',
+  },
+  confirmPaymentBtn: {
+    backgroundColor: '#2563eb',
+    color: 'white',
+    border: 'none',
+    padding: '0.5rem 0.75rem',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '0.85rem',
+    fontWeight: '600',
+  },
+  chatBtn: {
+    backgroundColor: '#eff6ff',
+    color: '#1d4ed8',
+    border: '1px solid #bfdbfe',
     padding: '0.5rem 0.75rem',
     borderRadius: '4px',
     cursor: 'pointer',

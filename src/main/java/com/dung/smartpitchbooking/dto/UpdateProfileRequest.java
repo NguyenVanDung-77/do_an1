@@ -19,4 +19,10 @@ public class UpdateProfileRequest {
     private String email;
     
     private String phoneNumber;
+
+    private String bankBin;
+
+    private String bankAccountNo;
+
+    private String bankAccountName;
 }

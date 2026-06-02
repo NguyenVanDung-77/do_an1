@@ -28,6 +28,10 @@ public class PitchRequest {
     @NotNull(message = "Giá thuê không được để trống")
     @DecimalMin(value = "0.0", inclusive = false, message = "Giá thuê phải lớn hơn 0")
     private BigDecimal pricePerHour;
+
+    private Double latitude;
+
+    private Double longitude;
     
     private String images;
     

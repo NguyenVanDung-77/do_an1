@@ -37,6 +37,8 @@ public class PitchService {
         pitch.setDistrict(request.getDistrict());
         pitch.setType(Pitch.PitchType.valueOf(request.getType()));
         pitch.setPricePerHour(request.getPricePerHour());
+        pitch.setLatitude(request.getLatitude());
+        pitch.setLongitude(request.getLongitude());
         pitch.setImages(request.getImages());
         pitch.setOpenTime(request.getOpenTime());
         pitch.setCloseTime(request.getCloseTime());
@@ -67,6 +69,8 @@ public class PitchService {
         pitch.setDistrict(request.getDistrict());
         pitch.setType(Pitch.PitchType.valueOf(request.getType()));
         pitch.setPricePerHour(request.getPricePerHour());
+        pitch.setLatitude(request.getLatitude());
+        pitch.setLongitude(request.getLongitude());
         pitch.setImages(request.getImages());
         pitch.setOpenTime(request.getOpenTime());
         pitch.setCloseTime(request.getCloseTime());
@@ -93,6 +97,12 @@ public class PitchService {
     public PitchResponse getPitchById(Long id) {
         Pitch pitch = pitchRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sân"));
+
+        // Public endpoint chỉ hiển thị sân đang hoạt động, đã duyệt và chủ sân còn hoạt động
+        if (!pitch.getIsApproved() || !pitch.getIsActive() || !pitch.getOwner().getIsActive()) {
+            throw new RuntimeException("Không tìm thấy sân");
+        }
+
         return convertToResponse(pitch);
     }
     
@@ -103,7 +113,7 @@ public class PitchService {
     }
     
     public List<PitchResponse> getApprovedPitches() {
-        return pitchRepository.findByIsApprovedTrue().stream()
+        return pitchRepository.findByIsApprovedTrueAndIsActiveTrueAndOwnerIsActiveTrue().stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
     }
@@ -187,6 +197,8 @@ public class PitchService {
         response.setDistrict(pitch.getDistrict());
         response.setType(pitch.getType().name());
         response.setPricePerHour(pitch.getPricePerHour());
+        response.setLatitude(pitch.getLatitude());
+        response.setLongitude(pitch.getLongitude());
         response.setImages(pitch.getImages());
         response.setOpenTime(pitch.getOpenTime());
         response.setCloseTime(pitch.getCloseTime());

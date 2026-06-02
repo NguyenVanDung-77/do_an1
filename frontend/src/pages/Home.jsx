@@ -107,7 +107,7 @@ const Home = () => {
           </div>
           <div style={styles.heroImageWrapper}>
             <img 
-              src="/rwc.png" 
+              src="/wc26.jpg" 
               alt="Football Champion" 
               style={styles.heroImage}
             />

@@ -19,6 +19,9 @@ public class UserResponse {
     private String email;
     private String fullName;
     private String phoneNumber;
+    private String bankBin;
+    private String bankAccountNo;
+    private String bankAccountName;
     private String role;
     private Boolean isActive;
     private LocalDateTime createdAt;
@@ -35,6 +38,9 @@ public class UserResponse {
                 .email(user.getEmail())
                 .fullName(user.getFullName())
                 .phoneNumber(user.getPhoneNumber())
+                .bankBin(user.getBankBin())
+                .bankAccountNo(user.getBankAccountNo())
+                .bankAccountName(user.getBankAccountName())
                 .role(user.getRole().name())
                 .isActive(user.getIsActive())
                 .createdAt(user.getCreatedAt())

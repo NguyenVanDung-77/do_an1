@@ -17,6 +17,8 @@ const MyPitches = () => {
     district: '',
     type: 'PITCH_5',
     pricePerHour: '',
+    latitude: '',
+    longitude: '',
     images: '',
     openTime: '06:00',
     closeTime: '22:00',
@@ -80,6 +82,8 @@ const MyPitches = () => {
       district: pitch.district || '',
       type: pitch.type,
       pricePerHour: pitch.pricePerHour,
+      latitude: pitch.latitude ?? '',
+      longitude: pitch.longitude ?? '',
       images: pitch.images || '',
       openTime: pitch.openTime,
       closeTime: pitch.closeTime,
@@ -107,10 +111,18 @@ const MyPitches = () => {
       district: '',
       type: 'PITCH_5',
       pricePerHour: '',
+      latitude: '',
+      longitude: '',
       images: '',
       openTime: '06:00',
       closeTime: '22:00',
     });
+  };
+
+  const getMapSearchUrl = () => {
+    const parts = [formData.address, formData.district, formData.city].filter(Boolean);
+    const query = parts.join(', ');
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
   };
 
   const handleCancel = () => {
@@ -248,6 +260,48 @@ const MyPitches = () => {
                   onChange={handleChange}
                   style={styles.input}
                   placeholder="https://example.com/image.jpg"
+                />
+              </div>
+            </div>
+
+            <div style={styles.mapHintBox}>
+              <p style={styles.mapHintText}>
+                Gợi ý: nhập đúng tọa độ để hiển thị bản đồ chính xác trên trang chi tiết sân.
+              </p>
+              <a
+                href={getMapSearchUrl()}
+                target="_blank"
+                rel="noreferrer"
+                style={styles.mapHintLink}
+              >
+                Mở Google Maps để tra tọa độ
+              </a>
+            </div>
+
+            <div style={styles.row}>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Vĩ độ (Latitude)</label>
+                <input
+                  type="number"
+                  step="any"
+                  name="latitude"
+                  value={formData.latitude}
+                  onChange={handleChange}
+                  style={styles.input}
+                  placeholder="Ví dụ: 10.780129"
+                />
+              </div>
+
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Kinh độ (Longitude)</label>
+                <input
+                  type="number"
+                  step="any"
+                  name="longitude"
+                  value={formData.longitude}
+                  onChange={handleChange}
+                  style={styles.input}
+                  placeholder="Ví dụ: 106.700981"
                 />
               </div>
             </div>
@@ -405,6 +459,32 @@ const styles = {
   formActions: {
     display: 'flex',
     gap: '1rem',
+  },
+  mapHintBox: {
+    padding: '0.85rem 1rem',
+    borderRadius: '8px',
+    border: '1px solid #bfdbfe',
+    backgroundColor: '#eff6ff',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: '1rem',
+    flexWrap: 'wrap',
+  },
+  mapHintText: {
+    margin: 0,
+    color: '#1e3a8a',
+    fontSize: '0.9rem',
+  },
+  mapHintLink: {
+    textDecoration: 'none',
+    backgroundColor: '#2563eb',
+    color: '#fff',
+    padding: '0.5rem 0.85rem',
+    borderRadius: '6px',
+    fontSize: '0.88rem',
+    fontWeight: '600',
+    whiteSpace: 'nowrap',
   },
   saveBtn: {
     flex: 1,

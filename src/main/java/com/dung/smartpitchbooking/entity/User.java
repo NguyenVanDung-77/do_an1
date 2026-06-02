@@ -33,6 +33,13 @@ public class User {
     private String fullName;
     
     private String phoneNumber;
+
+    // Thông tin nhận thanh toán dành cho OWNER (mô hình 2)
+    private String bankBin;
+
+    private String bankAccountNo;
+
+    private String bankAccountName;
     
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

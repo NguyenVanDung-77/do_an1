@@ -62,6 +62,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/pitches/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/reviews/pitch/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/news/**").permitAll()
                         .requestMatchers("/api/pitches/**").hasAnyRole("OWNER", "ADMIN")
                         .anyRequest().authenticated()
                 )

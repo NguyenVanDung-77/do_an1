@@ -13,7 +13,10 @@ function Profile() {
   const [profile, setProfile] = useState({
     fullName: '',
     email: '',
-    phoneNumber: ''
+    phoneNumber: '',
+    bankBin: '',
+    bankAccountNo: '',
+    bankAccountName: ''
   });
 
   // Password form
@@ -34,7 +37,10 @@ function Profile() {
       setProfile({
         fullName: response.data.fullName || '',
         email: response.data.email || '',
-        phoneNumber: response.data.phoneNumber || ''
+        phoneNumber: response.data.phoneNumber || '',
+        bankBin: response.data.bankBin || '',
+        bankAccountNo: response.data.bankAccountNo || '',
+        bankAccountName: response.data.bankAccountName || ''
       });
     } catch {
       setMessage({ type: 'error', text: 'Không thể tải thông tin. Vui lòng thử lại.' });
@@ -69,8 +75,8 @@ function Profile() {
       setSaving(true);
       const response = await userAPI.updateProfile(profile);
       
-      // Cập nhật context nếu fullName thay đổi
-      if (user && response.data.fullName !== user.fullName) {
+      // Cập nhật context nếu thông tin cơ bản thay đổi
+      if (user && (response.data.fullName !== user.fullName || response.data.email !== user.email)) {
         const updatedUser = { ...user, fullName: response.data.fullName, email: response.data.email };
         localStorage.setItem('user', JSON.stringify(updatedUser));
         // Reload để cập nhật context
@@ -223,6 +229,53 @@ function Profile() {
                 placeholder="Nhập số điện thoại"
               />
             </div>
+
+            {user?.role === 'OWNER' && (
+              <>
+                <div style={styles.bankInfoBox}>
+                  <strong>Thanh toán VietQR theo mô hình chủ sân tự nhận tiền</strong>
+                  <span style={styles.bankInfoText}>
+                    Vui lòng nhập đúng BIN ngân hàng, số tài khoản và tên tài khoản để người đặt sân quét QR chuyển khoản trực tiếp cho bạn.
+                  </span>
+                </div>
+
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>BIN ngân hàng *</label>
+                  <input
+                    type="text"
+                    name="bankBin"
+                    value={profile.bankBin}
+                    onChange={handleProfileChange}
+                    style={styles.input}
+                    placeholder="Ví dụ: 970422 (MBBank), 970436 (Vietcombank)"
+                  />
+                </div>
+
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>Số tài khoản nhận tiền *</label>
+                  <input
+                    type="text"
+                    name="bankAccountNo"
+                    value={profile.bankAccountNo}
+                    onChange={handleProfileChange}
+                    style={styles.input}
+                    placeholder="Nhập số tài khoản ngân hàng"
+                  />
+                </div>
+
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>Tên tài khoản ngân hàng *</label>
+                  <input
+                    type="text"
+                    name="bankAccountName"
+                    value={profile.bankAccountName}
+                    onChange={handleProfileChange}
+                    style={styles.input}
+                    placeholder="Nhập tên in hoa không dấu để đối soát dễ hơn"
+                  />
+                </div>
+              </>
+            )}
 
             <button type="submit" style={styles.submitBtn} disabled={saving}>
               {saving ? 'Đang lưu...' : '💾 Lưu thay đổi'}
@@ -407,6 +460,21 @@ const styles = {
   hint: {
     fontSize: '12px',
     color: '#9ca3af',
+  },
+  bankInfoBox: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.45rem',
+    padding: '0.9rem 1rem',
+    borderRadius: '10px',
+    backgroundColor: '#eff6ff',
+    border: '1px solid #bfdbfe',
+    color: '#1e3a8a',
+    fontSize: '0.9rem',
+  },
+  bankInfoText: {
+    color: '#1e40af',
+    lineHeight: 1.5,
   },
   submitBtn: {
     padding: '16px',

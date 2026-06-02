@@ -16,16 +16,16 @@ public interface PitchRepository extends JpaRepository<Pitch, Long> {
     
     List<Pitch> findByOwner(User owner);
     
-    List<Pitch> findByIsApprovedTrue();
+    List<Pitch> findByIsApprovedTrueAndIsActiveTrueAndOwnerIsActiveTrue();
     
     List<Pitch> findByIsApprovedFalse();
     
-    List<Pitch> findByTypeAndIsApprovedTrue(PitchType type);
+    List<Pitch> findByTypeAndIsApprovedTrueAndIsActiveTrueAndOwnerIsActiveTrue(PitchType type);
     
-    List<Pitch> findByCityContainingIgnoreCaseAndIsApprovedTrue(String city);
+    List<Pitch> findByCityContainingIgnoreCaseAndIsApprovedTrueAndIsActiveTrueAndOwnerIsActiveTrue(String city);
     
     // Tìm kiếm và lọc sân với nhiều điều kiện
-    @Query("SELECT p FROM Pitch p WHERE p.isApproved = true " +
+    @Query("SELECT p FROM Pitch p WHERE p.isApproved = true AND p.isActive = true AND p.owner.isActive = true " +
            "AND (:keyword IS NULL OR :keyword = '' OR LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
            "    OR LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
            "AND (:city IS NULL OR :city = '' OR p.city = :city) " +
@@ -44,17 +44,17 @@ public interface PitchRepository extends JpaRepository<Pitch, Long> {
     );
     
     // Lấy danh sách thành phố có sân
-    @Query("SELECT DISTINCT p.city FROM Pitch p WHERE p.isApproved = true AND p.city IS NOT NULL ORDER BY p.city")
+    @Query("SELECT DISTINCT p.city FROM Pitch p WHERE p.isApproved = true AND p.isActive = true AND p.owner.isActive = true AND p.city IS NOT NULL ORDER BY p.city")
     List<String> findDistinctCities();
     
     // Lấy danh sách quận theo thành phố
-    @Query("SELECT DISTINCT p.district FROM Pitch p WHERE p.isApproved = true AND p.city = :city AND p.district IS NOT NULL ORDER BY p.district")
+    @Query("SELECT DISTINCT p.district FROM Pitch p WHERE p.isApproved = true AND p.isActive = true AND p.owner.isActive = true AND p.city = :city AND p.district IS NOT NULL ORDER BY p.district")
     List<String> findDistrictsByCity(@Param("city") String city);
     
     // Lấy giá min và max
-    @Query("SELECT MIN(p.pricePerHour) FROM Pitch p WHERE p.isApproved = true")
+    @Query("SELECT MIN(p.pricePerHour) FROM Pitch p WHERE p.isApproved = true AND p.isActive = true AND p.owner.isActive = true")
     BigDecimal findMinPrice();
     
-    @Query("SELECT MAX(p.pricePerHour) FROM Pitch p WHERE p.isApproved = true")
+    @Query("SELECT MAX(p.pricePerHour) FROM Pitch p WHERE p.isApproved = true AND p.isActive = true AND p.owner.isActive = true")
     BigDecimal findMaxPrice();
 }

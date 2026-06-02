@@ -75,7 +75,7 @@ public class BookingController {
     }
     
     /**
-     * Hủy đơn đặt sân (USER)
+        * Hủy đơn đặt sân (USER) - áp dụng cho trạng thái PENDING hoặc CONFIRMED
      */
     @PutMapping("/{id}/cancel")
     @PreAuthorize("isAuthenticated()")

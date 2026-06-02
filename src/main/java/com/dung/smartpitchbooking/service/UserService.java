@@ -44,9 +44,23 @@ public class UserService {
         user.setFullName(request.getFullName());
         user.setEmail(request.getEmail());
         user.setPhoneNumber(request.getPhoneNumber());
+
+        if (user.getRole() == User.Role.OWNER) {
+            user.setBankBin(normalize(request.getBankBin()));
+            user.setBankAccountNo(normalize(request.getBankAccountNo()));
+            user.setBankAccountName(normalize(request.getBankAccountName()));
+        }
         
         User savedUser = userRepository.save(user);
         return UserResponse.fromEntity(savedUser);
+    }
+
+    private String normalize(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
     
     /**

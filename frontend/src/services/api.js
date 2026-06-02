@@ -143,4 +143,25 @@ export const reportAPI = {
   exportPdf: () => api.get('/reports/owner/pdf', { responseType: 'blob' }),
 };
 
+// News APIs
+export const newsAPI = {
+  // Lấy tin bóng đá tổng hợp
+  getFootballNews: (league = 'all') => api.get('/news/football', { params: { league } }),
+};
+
+// Payment APIs
+export const paymentAPI = {
+  createVietQrPayment: (bookingId) => api.post('/payments/vietqr/create', null, { params: { bookingId } }),
+  getByBookingId: (bookingId) => api.get(`/payments/booking/${bookingId}`),
+  requestConfirmation: (bookingId) => api.put(`/payments/booking/${bookingId}/request-confirmation`),
+  confirmPayment: (bookingId) => api.put(`/payments/booking/${bookingId}/confirm`),
+};
+
+// Chat APIs
+export const chatAPI = {
+  getConversations: () => api.get('/chat/conversations'),
+  getMessagesByBooking: (bookingId) => api.get(`/chat/booking/${bookingId}/messages`),
+  sendMessage: (bookingId, content) => api.post(`/chat/booking/${bookingId}/messages`, { content }),
+};
+
 export default api;

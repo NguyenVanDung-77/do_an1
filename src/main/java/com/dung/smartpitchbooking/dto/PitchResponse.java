@@ -15,6 +15,8 @@ public class PitchResponse {
     private String district;
     private String type;
     private BigDecimal pricePerHour;
+    private Double latitude;
+    private Double longitude;
     private String images;
     private String openTime;
     private String closeTime;

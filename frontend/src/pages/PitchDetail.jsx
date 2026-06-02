@@ -159,6 +159,27 @@ const PitchDetail = () => {
     }).format(price);
   };
 
+  const getFullAddress = () => {
+    return [pitch?.address, pitch?.district, pitch?.city].filter(Boolean).join(', ');
+  };
+
+  const getMapEmbedUrl = () => {
+    if (!pitch) return '';
+    if (pitch.latitude !== null && pitch.latitude !== undefined && pitch.longitude !== null && pitch.longitude !== undefined) {
+      return `https://maps.google.com/maps?q=${pitch.latitude},${pitch.longitude}&z=15&output=embed`;
+    }
+    const query = getFullAddress();
+    return `https://maps.google.com/maps?q=${encodeURIComponent(query)}&z=15&output=embed`;
+  };
+
+  const getMapOpenUrl = () => {
+    if (!pitch) return '#';
+    if (pitch.latitude !== null && pitch.latitude !== undefined && pitch.longitude !== null && pitch.longitude !== undefined) {
+      return `https://www.google.com/maps/search/?api=1&query=${pitch.latitude},${pitch.longitude}`;
+    }
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(getFullAddress())}`;
+  };
+
   const getMinDate = () => {
     return new Date().toISOString().split('T')[0];
   };
@@ -272,6 +293,12 @@ const PitchDetail = () => {
             <p><strong>Loại sân:</strong> {pitch.type.replace('PITCH_', 'Sân ')}</p>
             <p><strong>Chủ sân:</strong> {pitch.ownerName}</p>
             <p><strong>Địa chỉ:</strong> {pitch.address}, {pitch.district}, {pitch.city}</p>
+            <p>
+              <strong>Bản đồ:</strong>{' '}
+              <a href={getMapOpenUrl()} target="_blank" rel="noreferrer" style={styles.mapLink}>
+                Mở trên Google Maps
+              </a>
+            </p>
             <p><strong>Giờ mở cửa:</strong> {pitch.openTime} - {pitch.closeTime}</p>
             <p><strong>Giá:</strong> <span style={styles.price}>{formatPrice(pitch.pricePerHour)}/giờ</span></p>
             
@@ -288,6 +315,24 @@ const PitchDetail = () => {
               </button>
             )}
           </div>
+        </div>
+      </div>
+
+      <div style={styles.mapSection}>
+        <div style={styles.mapHeader}>
+          <h2 style={styles.mapTitle}>🗺️ Vị trí sân trên Google Maps</h2>
+          <a href={getMapOpenUrl()} target="_blank" rel="noreferrer" style={styles.mapActionBtn}>
+            Mở bản đồ lớn
+          </a>
+        </div>
+        <div style={styles.mapFrameWrap}>
+          <iframe
+            title="Bản đồ sân"
+            src={getMapEmbedUrl()}
+            style={styles.mapFrame}
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+          />
         </div>
       </div>
 
@@ -611,6 +656,52 @@ const styles = {
     color: '#dc2626',
     fontWeight: '700',
     fontSize: '1.2rem',
+  },
+  mapLink: {
+    color: '#2563eb',
+    fontWeight: '600',
+    textDecoration: 'none',
+  },
+  mapSection: {
+    marginBottom: '3rem',
+    backgroundColor: 'white',
+    borderRadius: '16px',
+    border: '1px solid #d1fae5',
+    boxShadow: '0 6px 24px rgba(16, 185, 129, 0.12)',
+    padding: '1rem',
+  },
+  mapHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: '1rem',
+    marginBottom: '0.9rem',
+    flexWrap: 'wrap',
+  },
+  mapTitle: {
+    margin: 0,
+    color: '#065f46',
+    fontSize: '1.2rem',
+  },
+  mapActionBtn: {
+    textDecoration: 'none',
+    backgroundColor: '#2563eb',
+    color: 'white',
+    borderRadius: '8px',
+    padding: '0.55rem 0.9rem',
+    fontSize: '0.9rem',
+    fontWeight: '600',
+  },
+  mapFrameWrap: {
+    borderRadius: '12px',
+    overflow: 'hidden',
+    border: '1px solid #cbd5e1',
+  },
+  mapFrame: {
+    width: '100%',
+    height: '360px',
+    border: '0',
+    display: 'block',
   },
   bookBtn: {
     background: 'linear-gradient(135deg, #1a5f2a 0%, #2d8a42 100%)',

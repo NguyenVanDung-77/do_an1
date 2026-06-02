@@ -83,7 +83,7 @@ public class ReviewService {
      * Lấy tất cả đánh giá của một sân
      */
     public List<ReviewResponse> getReviewsByPitchId(Long pitchId) {
-        return reviewRepository.findByPitchIdOrderByCreatedAtDesc(pitchId)
+        return reviewRepository.findByPitchIdAndUserIsActiveTrueOrderByCreatedAtDesc(pitchId)
                 .stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
@@ -96,7 +96,7 @@ public class ReviewService {
         Map<String, Object> summary = new HashMap<>();
         
         Double avgRating = reviewRepository.getAverageRatingByPitchId(pitchId);
-        Long totalReviews = reviewRepository.countByPitchId(pitchId);
+        Long totalReviews = reviewRepository.countByPitchIdAndUserIsActiveTrue(pitchId);
         
         summary.put("averageRating", avgRating != null ? Math.round(avgRating * 10.0) / 10.0 : 0);
         summary.put("totalReviews", totalReviews);

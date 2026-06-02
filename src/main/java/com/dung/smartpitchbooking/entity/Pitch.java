@@ -40,6 +40,11 @@ public class Pitch {
     
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal pricePerHour;
+
+    // Tọa độ để hiển thị Google Maps
+    private Double latitude;
+
+    private Double longitude;
     
     @Column(columnDefinition = "TEXT")
     private String images; // Lưu URLs của ảnh, phân cách bởi dấu phẩy

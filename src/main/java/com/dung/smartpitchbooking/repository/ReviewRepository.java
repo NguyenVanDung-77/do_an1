@@ -15,10 +15,10 @@ import java.util.Optional;
 public interface ReviewRepository extends JpaRepository<Review, Long> {
     
     // Lấy tất cả review của một sân, sắp xếp theo thời gian mới nhất
-    List<Review> findByPitchOrderByCreatedAtDesc(Pitch pitch);
+    List<Review> findByPitchAndUserIsActiveTrueOrderByCreatedAtDesc(Pitch pitch);
     
     // Lấy review của một sân theo id
-    List<Review> findByPitchIdOrderByCreatedAtDesc(Long pitchId);
+    List<Review> findByPitchIdAndUserIsActiveTrueOrderByCreatedAtDesc(Long pitchId);
     
     // Kiểm tra user đã review sân này chưa
     Optional<Review> findByUserAndPitch(User user, Pitch pitch);
@@ -27,11 +27,11 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     boolean existsByUserIdAndPitchId(Long userId, Long pitchId);
     
     // Tính rating trung bình của sân
-    @Query("SELECT AVG(r.rating) FROM Review r WHERE r.pitch.id = :pitchId")
+    @Query("SELECT AVG(r.rating) FROM Review r WHERE r.pitch.id = :pitchId AND r.user.isActive = true")
     Double getAverageRatingByPitchId(@Param("pitchId") Long pitchId);
     
     // Đếm số lượng review của sân
-    Long countByPitchId(Long pitchId);
+    Long countByPitchIdAndUserIsActiveTrue(Long pitchId);
     
     // Lấy review của user cho sân cụ thể
     Optional<Review> findByUserIdAndPitchId(Long userId, Long pitchId);

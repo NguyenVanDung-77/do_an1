@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { bookingAPI } from '../services/api';
+import { bookingAPI, paymentAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
 const MyBookings = () => {
   const [bookings, setBookings] = useState([]);
+  const [paymentByBookingId, setPaymentByBookingId] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [filter, setFilter] = useState('all');
@@ -23,12 +24,48 @@ const MyBookings = () => {
   const fetchBookings = async () => {
     try {
       const response = await bookingAPI.getMyBookings();
-      setBookings(response.data);
+      const bookingList = response.data || [];
+      setBookings(bookingList);
+      await fetchPaymentStatuses(bookingList);
     } catch {
       setError('Không thể tải danh sách đặt sân');
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchPaymentStatuses = async (bookingList) => {
+    if (!bookingList.length) {
+      setPaymentByBookingId({});
+      return;
+    }
+
+    const targetBookings = bookingList.filter(
+      (booking) => booking.status === 'PENDING' || booking.status === 'CONFIRMED'
+    );
+
+    if (!targetBookings.length) {
+      setPaymentByBookingId({});
+      return;
+    }
+
+    const statusMap = {};
+
+    await Promise.all(
+      targetBookings.map(async (booking) => {
+        try {
+          const response = await paymentAPI.getByBookingId(booking.id);
+          statusMap[booking.id] = response.data;
+        } catch {
+          statusMap[booking.id] = {
+            paymentStatus: 'UNPAID',
+            provider: 'VIETQR',
+          };
+        }
+      })
+    );
+
+    setPaymentByBookingId(statusMap);
   };
 
   const handleCancel = async (id) => {
@@ -39,6 +76,23 @@ const MyBookings = () => {
       fetchBookings();
     } catch (err) {
       setError(err.response?.data?.message || 'Không thể hủy đơn');
+    }
+  };
+
+  const handlePayVietQr = (bookingId) => {
+    navigate(`/payment/qr?bookingId=${bookingId}`);
+  };
+
+  const getPaymentStatusInfo = (paymentStatus) => {
+    switch (paymentStatus) {
+      case 'PAID':
+        return { label: 'Đã thanh toán', color: '#15803d', backgroundColor: '#dcfce7' };
+      case 'PENDING':
+        return { label: 'Đang chờ thanh toán', color: '#b45309', backgroundColor: '#fef3c7' };
+      case 'FAILED':
+        return { label: 'Thanh toán thất bại', color: '#b91c1c', backgroundColor: '#fee2e2' };
+      default:
+        return { label: 'Chưa thanh toán', color: '#475569', backgroundColor: '#e2e8f0' };
     }
   };
 
@@ -178,6 +232,21 @@ const MyBookings = () => {
                     <span style={styles.infoLabel}>💰 Tổng tiền:</span>
                     <span style={styles.priceValue}>{formatPrice(booking.totalPrice)}</span>
                   </div>
+
+                  {(booking.status === 'PENDING' || booking.status === 'CONFIRMED') && (
+                    <div style={styles.infoRow}>
+                      <span style={styles.infoLabel}>💳 Thanh toán:</span>
+                      <span
+                        style={{
+                          ...styles.paymentBadge,
+                          color: getPaymentStatusInfo(paymentByBookingId[booking.id]?.paymentStatus).color,
+                          backgroundColor: getPaymentStatusInfo(paymentByBookingId[booking.id]?.paymentStatus).backgroundColor,
+                        }}
+                      >
+                        {getPaymentStatusInfo(paymentByBookingId[booking.id]?.paymentStatus).label}
+                      </span>
+                    </div>
+                  )}
                   
                   {booking.note && (
                     <div style={styles.noteSection}>
@@ -201,6 +270,23 @@ const MyBookings = () => {
                   >
                     👁️ Xem sân
                   </button>
+
+                  <button
+                    onClick={() => navigate(`/chat?bookingId=${booking.id}`)}
+                    style={styles.chatBtn}
+                  >
+                    💬 Chat chủ sân
+                  </button>
+
+                  {(booking.status === 'PENDING' || booking.status === 'CONFIRMED') &&
+                    paymentByBookingId[booking.id]?.paymentStatus !== 'PAID' && (
+                      <button
+                        onClick={() => handlePayVietQr(booking.id)}
+                        style={styles.payBtn}
+                      >
+                        💳 Thanh toán VietQR
+                      </button>
+                    )}
                   
                   {(booking.status === 'PENDING' || booking.status === 'CONFIRMED') && (
                     <button
@@ -359,6 +445,14 @@ const styles = {
     fontWeight: '700',
     fontSize: '1.15rem',
   },
+  paymentBadge: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    padding: '0.35rem 0.7rem',
+    borderRadius: '999px',
+    fontSize: '0.82rem',
+    fontWeight: '700',
+  },
   noteSection: {
     marginTop: '1.25rem',
     padding: '1rem',
@@ -384,6 +478,7 @@ const styles = {
   },
   cardFooter: {
     display: 'flex',
+    flexWrap: 'wrap',
     gap: '0.75rem',
     padding: '1.25rem 1.5rem',
     borderTop: '1px solid #e8f5e9',
@@ -404,6 +499,28 @@ const styles = {
     backgroundColor: '#fef2f2',
     color: '#dc2626',
     border: '1px solid #fecaca',
+    padding: '0.6rem 1.25rem',
+    borderRadius: '10px',
+    cursor: 'pointer',
+    fontSize: '0.9rem',
+    fontWeight: '600',
+    transition: 'all 0.3s ease',
+  },
+  payBtn: {
+    background: 'linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%)',
+    color: '#fff',
+    border: 'none',
+    padding: '0.6rem 1.25rem',
+    borderRadius: '10px',
+    cursor: 'pointer',
+    fontSize: '0.9rem',
+    fontWeight: '600',
+    transition: 'all 0.3s ease',
+  },
+  chatBtn: {
+    backgroundColor: '#eff6ff',
+    color: '#1d4ed8',
+    border: '1px solid #bfdbfe',
     padding: '0.6rem 1.25rem',
     borderRadius: '10px',
     cursor: 'pointer',
